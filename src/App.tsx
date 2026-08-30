@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { analyzeComplaint, calculateReadinessScore } from './lib/diagnosis';
 import type { ApplianceType, WorkflowState } from './lib/diagnosis';
 import { Button, Card, Badge, Input } from './components/ui';
@@ -9,6 +9,7 @@ import { TechnicianDashboard } from './components/dashboards/TechnicianDashboard
 import { CustomerDashboard } from './components/dashboards/CustomerDashboard';
 import { CustomerRating } from './components/booking/CustomerRating';
 import { Wrench, CheckCircle2, ChevronRight, Activity, RotateCcw, AlertTriangle, DollarSign, AlertCircle, ArrowRight } from 'lucide-react';
+import { initializeStore, getSession, setSession, clearSession, USERS, saveBooking, type Booking } from './lib/store';
 
 const APPLIANCES: ApplianceType[] = ['Washing Machine', 'Refrigerator', 'Air Conditioner', 'Television', 'Other'];
 const EXAMPLES = [
@@ -19,6 +20,15 @@ const EXAMPLES = [
 
 export default function App() {
   const [viewMode, setViewMode] = useState<'landing' | 'customerLogin' | 'technicianLogin' | 'customer' | 'technician' | 'rating' | 'booking'>('landing');
+  
+  useEffect(() => {
+    initializeStore();
+    const session = getSession();
+    if (session) {
+      if (session.role === 'customer') setViewMode('customer');
+      if (session.role === 'technician') setViewMode('technician');
+    }
+  }, []);
   const [state, setState] = useState<WorkflowState>({
     appliance: null,
     complaint: '',
@@ -44,19 +54,44 @@ export default function App() {
   };
 
   const handleBookTechnician = (details: any) => {
-    // Generate mock booking ID
-    const bookingId = `BK-${Math.floor(Math.random() * 90000) + 10000}`;
+    const session = getSession();
+    if (!session || session.role !== 'customer') return;
+
+    // Generate real booking ID
+    const year = new Date().getFullYear();
+    const bookingId = `FF-${year}-${Math.floor(Math.random() * 9000) + 1000}`;
+    
+    const newBooking: Booking = {
+      bookingId,
+      customerId: session.id,
+      customerName: session.name,
+      customerPhone: session.phone,
+      customerAddress: details.address,
+      technicianId: details.technician.id,
+      technicianName: details.technician.name,
+      technicianPhone: details.technician.phone,
+      appliance: state.appliance!,
+      complaint: state.complaint,
+      aiDiagnosis: state.diagnosis!.likelyIssue,
+      confidence: state.diagnosis!.confidence,
+      possibleCauses: state.diagnosis!.possibleCauses,
+      partsStrategy: state.partsDecision!,
+      estimatedCost: state.diagnosis!.estimatedCostRange,
+      appointmentDate: details.date,
+      appointmentTime: details.time,
+      createdAt: new Date().toISOString(),
+      status: 'CONFIRMED'
+    };
+
+    saveBooking(newBooking);
     
     setState(s => ({
       ...s,
       bookingDetails: {
-        bookingId,
-        customerName: 'Guest Customer', // In real app, from auth
+        ...newBooking,
         serviceAddress: details.address,
         preferredDate: details.date,
-        preferredTime: details.time,
-        technicianId: details.technician.id,
-        status: 'booked'
+        preferredTime: details.time
       }
     }));
   };
@@ -80,6 +115,21 @@ export default function App() {
     if (state.diagnosis) return 3; // Diagnosis
     if (state.isAnalyzing) return 2; // Analyzing
     return 1; // Input
+  };
+
+  const handleLogin = (role: 'customer' | 'technician', e?: React.FormEvent) => {
+    e?.preventDefault();
+    const demoUser = USERS.find(u => u.role === role);
+    if (demoUser) {
+      setSession(demoUser);
+      setViewMode(role);
+    }
+  };
+
+  const handleLogout = () => {
+    clearSession();
+    setViewMode('landing');
+    reset();
   };
 
   const currentStage = getStage();
@@ -125,12 +175,12 @@ export default function App() {
               <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
               <Input type="password" placeholder="Enter password" />
             </div>
-            <Button onClick={() => setViewMode('customer')} className="w-full">Login</Button>
+            <Button onClick={(e) => handleLogin('customer', e)} className="w-full">Login</Button>
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-300" /></div>
               <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-500">Or</span></div>
             </div>
-            <Button onClick={() => setViewMode('customer')} variant="secondary" className="w-full">Demo Customer Login</Button>
+            <Button onClick={(e) => handleLogin('customer', e)} variant="secondary" className="w-full">Demo Customer Login</Button>
             <Button onClick={() => setViewMode('landing')} variant="ghost" className="w-full mt-2">Back</Button>
           </div>
         </Card>
@@ -152,12 +202,12 @@ export default function App() {
               <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
               <Input type="password" placeholder="Enter password" />
             </div>
-            <Button onClick={() => setViewMode('technician')} className="w-full">Login</Button>
+            <Button onClick={(e) => handleLogin('technician', e)} className="w-full">Login</Button>
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-300" /></div>
               <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-500">Or</span></div>
             </div>
-            <Button onClick={() => setViewMode('technician')} variant="secondary" className="w-full">Demo Technician Login</Button>
+            <Button onClick={(e) => handleLogin('technician', e)} variant="secondary" className="w-full">Demo Technician Login</Button>
             <Button onClick={() => setViewMode('landing')} variant="ghost" className="w-full mt-2">Back</Button>
           </div>
         </Card>
@@ -166,11 +216,11 @@ export default function App() {
   }
 
   if (viewMode === 'technician') {
-    return <TechnicianDashboard onLogout={() => setViewMode('landing')} />;
+    return <TechnicianDashboard onLogout={handleLogout} />;
   }
 
   if (viewMode === 'customer') {
-    return <CustomerDashboard onLogout={() => setViewMode('landing')} onBookRepair={() => setViewMode('booking')} />;
+    return <CustomerDashboard onLogout={handleLogout} onBookRepair={() => setViewMode('booking')} />;
   }
 
   if (viewMode === 'rating') {

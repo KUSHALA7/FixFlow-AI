@@ -5,9 +5,9 @@ import { TechnicianBooking } from '../components/booking/TechnicianBooking';
 describe('TechnicianBooking', () => {
   it('renders available technicians', () => {
     render(<TechnicianBooking appliance="Washing Machine" onBook={() => {}} />);
-    expect(screen.getByText('Michael Rodriguez')).toBeInTheDocument();
-    expect(screen.getByText('Sarah Jenkins')).toBeInTheDocument();
-    expect(screen.getByText('David Chen')).toBeInTheDocument();
+    expect(screen.getAllByText('Michael Rodriguez')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Sarah Jenkins')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('David Chen')[0]).toBeInTheDocument();
   });
 
   it('allows selecting a technician and setting details', async () => {
@@ -15,7 +15,7 @@ describe('TechnicianBooking', () => {
     render(<TechnicianBooking appliance="Washing Machine" onBook={mockOnBook} />);
 
     // Select a tech
-    fireEvent.click(screen.getByText('Michael Rodriguez'));
+    fireEvent.click(screen.getAllByText('Michael Rodriguez')[0]);
 
     // The book button should indicate the selected tech
     expect(screen.getByRole('button', { name: /Book Michael/i })).toBeInTheDocument();
@@ -25,11 +25,11 @@ describe('TechnicianBooking', () => {
     expect(mockOnBook).not.toHaveBeenCalled();
 
     // Fill in details
-    const addressInput = screen.getByPlaceholderText('123 Main St, Apt 4B');
+    const addressInput = screen.getAllByPlaceholderText('123 Main St, Apt 4B')[0];
     fireEvent.change(addressInput, { target: { value: '456 Test Ave' } });
 
     // Select time
-    fireEvent.click(screen.getByText('09:00 AM'));
+    fireEvent.click(screen.getAllByText('09:00 AM')[0]);
 
     // We can't easily test date input in jsdom standard without more setup, 
     // but we can assume setting value works

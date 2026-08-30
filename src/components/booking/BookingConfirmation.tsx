@@ -1,7 +1,6 @@
-import { Card, Button, Badge } from '../ui';
-import { mockTechnicians } from '../../lib/mock/technicians';
-import { CheckCircle2, Download, Calendar, MapPin, Wrench, Home } from 'lucide-react';
-import type { DiagnosisResult, ApplianceType } from '../../lib/diagnosis';
+import { Card, Button } from '../ui';
+import { CheckCircle2, MapPin, Calendar, DollarSign, Wrench, Download } from 'lucide-react';
+import type { ApplianceType, DiagnosisResult } from '../../lib/diagnosis';
 
 interface BookingConfirmationProps {
   booking: any;
@@ -12,38 +11,40 @@ interface BookingConfirmationProps {
   onNewDiagnosis: () => void;
 }
 
-export function BookingConfirmation({ booking, diagnosis, partsDecision, appliance, complaint, onNewDiagnosis }: BookingConfirmationProps) {
-  const tech = mockTechnicians.find(t => t.id === booking.technicianId);
-
+export function BookingConfirmation({ booking, diagnosis, partsDecision, appliance, complaint }: BookingConfirmationProps) {
+  
   const handleDownload = () => {
-    // Generate a simple text file for the demo
+    // Simple mock download
     const content = `
-FIXFLOW BOOKING CONFIRMATION
-============================
+FIXFLOW REPAIR BOOKING
+======================
 Booking ID: ${booking.bookingId}
-Status: Confirmed
+Status: CONFIRMED
 
 CUSTOMER DETAILS
+Name: ${booking.customerName}
 Address: ${booking.serviceAddress}
 
-APPOINTMENT
-Date: ${booking.preferredDate}
-Time: ${booking.preferredTime}
-Technician: ${tech?.name} (${tech?.phone})
-
-REPAIR DETAILS
+APPLIANCE ISSUE
 Appliance: ${appliance}
 Complaint: ${complaint}
-Diagnosis: ${diagnosis.likelyIssue}
-Parts Strategy: ${partsDecision === 'technician' ? 'Technician brings parts' : partsDecision === 'customer' ? 'Customer provides parts' : 'Inspection first'}
-Est. Cost: ${diagnosis.estimatedCostRange}
-    `.trim();
 
+AI DIAGNOSIS
+Likely Issue: ${diagnosis.likelyIssue} (Confidence: ${diagnosis.confidence}%)
+Parts Strategy: ${partsDecision}
+Estimated Cost: ${diagnosis.estimatedCostRange}
+
+TECHNICIAN DETAILS
+Name: ${booking.technicianName}
+Phone: ${booking.technicianPhone}
+Appointment: ${booking.preferredDate} at ${booking.preferredTime}
+    `;
+    
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `FixFlow-Booking-${booking.bookingId}.txt`;
+    a.download = `FixFlow_Booking_${booking.bookingId}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -51,87 +52,101 @@ Est. Cost: ${diagnosis.estimatedCostRange}
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+    <div className="max-w-2xl mx-auto">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <CheckCircle2 className="w-8 h-8 text-green-600" />
         </div>
-        <h2 className="text-3xl font-bold text-slate-900">Booking Confirmed!</h2>
-        <p className="text-slate-600 text-lg">Your repair has been successfully scheduled.</p>
-        <Badge variant="success" className="text-lg px-4 py-1">ID: {booking.bookingId}</Badge>
+        <h2 className="text-3xl font-bold text-slate-900 mb-2">Booking Confirmed!</h2>
+        <p className="text-slate-600">Your technician has been scheduled successfully.</p>
       </div>
 
-      <Card className="p-8 border-t-4 border-t-blue-600 shadow-lg mt-8 bg-white">
-        
-        {/* Tech Info */}
-        <div className="flex items-center space-x-4 pb-6 border-b border-slate-100">
-           {tech && <img src={tech.avatar} alt={tech.name} className="w-16 h-16 rounded-full border border-slate-200" />}
-           <div>
-             <h3 className="text-lg font-bold text-slate-900">{tech?.name}</h3>
-             <p className="text-slate-500">Your assigned technician</p>
-           </div>
-           <div className="ml-auto text-right">
-             <div className="text-sm font-medium text-slate-900">{tech?.phone}</div>
-             <div className="text-xs text-slate-500">Contact Number</div>
-           </div>
+      <Card id="booking-card" className="p-0 overflow-hidden shadow-lg border-slate-200 mb-8">
+        {/* Header */}
+        <div className="bg-slate-900 text-white p-6 flex justify-between items-center">
+          <div>
+            <p className="text-slate-400 text-sm mb-1">Booking ID</p>
+            <p className="font-mono text-xl font-bold tracking-wider">{booking.bookingId}</p>
+          </div>
+          <div className="text-right">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">
+              ● Confirmed
+            </span>
+          </div>
         </div>
 
-        {/* Appointment Details */}
-        <div className="grid grid-cols-2 gap-6 py-6 border-b border-slate-100">
-           <div>
-             <div className="flex items-center text-slate-500 mb-1">
-               <Calendar className="w-4 h-4 mr-2" />
-               <span className="text-xs font-medium uppercase tracking-wider">Date & Time</span>
-             </div>
-             <div className="font-semibold text-slate-900">{booking.preferredDate}</div>
-             <div className="text-slate-600">{booking.preferredTime}</div>
-           </div>
-           <div>
-             <div className="flex items-center text-slate-500 mb-1">
-               <MapPin className="w-4 h-4 mr-2" />
-               <span className="text-xs font-medium uppercase tracking-wider">Service Address</span>
-             </div>
-             <div className="font-semibold text-slate-900">{booking.serviceAddress}</div>
-           </div>
-        </div>
+        {/* Content */}
+        <div className="p-6 md:p-8 space-y-8 bg-white">
+          
+          {/* Schedule */}
+          <div className="flex flex-col md:flex-row gap-6 pb-6 border-b border-slate-100">
+            <div className="flex-1 flex items-start space-x-4">
+              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                <Calendar className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-500 mb-1">Date & Time</p>
+                <p className="font-bold text-slate-900">{booking.preferredDate}</p>
+                <p className="text-slate-600">{booking.preferredTime}</p>
+              </div>
+            </div>
+            <div className="flex-1 flex items-start space-x-4">
+              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                <MapPin className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-500 mb-1">Service Address</p>
+                <p className="font-medium text-slate-900 leading-snug">{booking.serviceAddress}</p>
+              </div>
+            </div>
+          </div>
 
-        {/* Job Details */}
-        <div className="py-6 space-y-4">
-           <div className="flex items-center text-slate-500 mb-2">
-             <Wrench className="w-4 h-4 mr-2" />
-             <span className="text-xs font-medium uppercase tracking-wider">Repair Summary</span>
-           </div>
-           
-           <div className="bg-slate-50 p-4 rounded-lg space-y-3">
-             <div className="flex justify-between">
-               <span className="text-slate-600">Appliance</span>
-               <span className="font-medium text-slate-900">{appliance}</span>
-             </div>
-             <div className="flex justify-between">
-               <span className="text-slate-600">Diagnosis</span>
-               <span className="font-medium text-slate-900">{diagnosis.likelyIssue}</span>
-             </div>
-             <div className="flex justify-between">
-               <span className="text-slate-600">Parts Strategy</span>
-               <span className="font-medium text-slate-900 capitalize">{partsDecision}</span>
-             </div>
-             <div className="flex justify-between pt-3 border-t border-slate-200">
-               <span className="font-medium text-slate-900">Estimated Cost</span>
-               <span className="font-bold text-blue-600">{diagnosis.estimatedCostRange}</span>
-             </div>
-           </div>
-        </div>
+          {/* Technician */}
+          <div className="pb-6 border-b border-slate-100">
+            <h3 className="text-sm text-slate-500 mb-4 uppercase tracking-wider font-semibold">Assigned Technician</h3>
+            <div className="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden">
+                   <img src={`https://i.pravatar.cc/150?u=${booking.technicianId}`} alt="Tech" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">{booking.technicianName}</p>
+                  <p className="text-sm text-slate-500">{booking.technicianPhone}</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          {/* Diagnosis Summary */}
+          <div>
+            <h3 className="text-sm text-slate-500 mb-4 uppercase tracking-wider font-semibold">Job Summary</h3>
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <Wrench className="w-5 h-5 text-slate-400 mr-3 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-slate-900">{appliance} Issue</p>
+                  <p className="text-sm text-slate-600 mt-1">{diagnosis.likelyIssue}</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <DollarSign className="w-5 h-5 text-slate-400 mr-3 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-slate-900">Estimated Cost</p>
+                  <p className="text-sm text-slate-600 mt-1">{diagnosis.estimatedCostRange}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </Card>
 
-      <div className="flex flex-col sm:flex-row gap-4 pt-4">
-        <Button onClick={handleDownload} variant="outline" className="flex-1 py-4">
-          <Download className="w-5 h-5 mr-2" />
-          Download Details
+      <div className="flex flex-col sm:flex-row justify-center gap-4">
+        <Button variant="outline" onClick={handleDownload} className="py-3 px-6">
+          <Download className="w-4 h-4 mr-2" /> Download Job Card
         </Button>
-        <Button onClick={onNewDiagnosis} className="flex-1 py-4">
-          <Home className="w-5 h-5 mr-2" />
-          Back to Dashboard
+        <Button onClick={() => window.location.reload()} className="py-3 px-6">
+          Go to Dashboard
         </Button>
       </div>
     </div>
