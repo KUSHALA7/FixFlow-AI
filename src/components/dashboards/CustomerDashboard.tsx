@@ -10,25 +10,27 @@ export function CustomerDashboard({ onLogout, onBookRepair }: { onLogout: () => 
   const [ratingBooking, setRatingBooking] = useState<Booking | null>(null);
   const session = getSession();
 
-  const loadBookings = () => {
-    if (session) {
-      const allBookings = getBookings();
-      setBookings(allBookings.filter(b => b.customerId === session.id).reverse());
-    }
-  };
+
 
   useEffect(() => {
-    loadBookings();
+    const fetchBookings = () => {
+      if (session) {
+        const allBookings = getBookings();
+        setBookings(allBookings.filter(b => b.customerId === session.id).reverse());
+      }
+    };
+    fetchBookings();
     // Poll for updates in MVP
-    const interval = setInterval(loadBookings, 2000);
+    const interval = setInterval(fetchBookings, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [session]);
 
   const handleRatingSubmit = (rating: number, feedback: string) => {
     if (ratingBooking) {
       updateBooking(ratingBooking.bookingId, { rating, feedback });
       setRatingBooking(null);
-      loadBookings();
+      const allBookings = getBookings();
+      setBookings(allBookings.filter(b => b.customerId === session?.id).reverse());
     }
   };
 

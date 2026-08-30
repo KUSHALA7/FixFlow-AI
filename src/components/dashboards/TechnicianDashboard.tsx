@@ -8,26 +8,29 @@ export function TechnicianDashboard({ onLogout }: { onLogout: () => void }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const session = getSession();
 
-  const loadBookings = () => {
-    if (session) {
-      const allBookings = getBookings();
-      setBookings(allBookings.filter(b => b.technicianId === session.id).reverse());
-    }
-  };
+
 
   useEffect(() => {
-    loadBookings();
+    const fetchBookings = () => {
+      if (session) {
+        const allBookings = getBookings();
+        setBookings(allBookings.filter(b => b.technicianId === session.id).reverse());
+      }
+    };
+    fetchBookings();
     // Poll for updates in MVP
-    const interval = setInterval(loadBookings, 2000);
+    const interval = setInterval(fetchBookings, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [session]);
 
   const handleStatusChange = (bookingId: string, newStatus: Booking['status']) => {
     updateBooking(bookingId, { 
       status: newStatus,
       ...(newStatus === 'COMPLETED' ? { completedAt: new Date().toISOString() } : {})
     });
-    loadBookings();
+    // Immediately fetch updated bookings
+    const allBookings = getBookings();
+    setBookings(allBookings.filter(b => b.technicianId === session?.id).reverse());
   };
 
   if (!session || session.role !== 'technician') {

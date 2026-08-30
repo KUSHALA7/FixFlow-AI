@@ -19,15 +19,18 @@ const EXAMPLES = [
 ];
 
 export default function App() {
-  const [viewMode, setViewMode] = useState<'landing' | 'customerLogin' | 'technicianLogin' | 'customer' | 'technician' | 'rating' | 'booking'>('landing');
-  
-  useEffect(() => {
+  const [viewMode, setViewMode] = useState<'landing' | 'customerLogin' | 'technicianLogin' | 'customer' | 'technician' | 'rating' | 'booking'>(() => {
     initializeStore();
     const session = getSession();
     if (session) {
-      if (session.role === 'customer') setViewMode('customer');
-      if (session.role === 'technician') setViewMode('technician');
+      if (session.role === 'customer') return 'customer';
+      if (session.role === 'technician') return 'technician';
     }
+    return 'landing';
+  });
+
+  useEffect(() => {
+    // Keep this empty or remove if not needed. Store init is now in useState.
   }, []);
   const [state, setState] = useState<WorkflowState>({
     appliance: null,

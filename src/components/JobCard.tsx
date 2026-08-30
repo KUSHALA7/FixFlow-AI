@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { PartsDecision, DiagnosisResult } from '../lib/diagnosis';
 import { Card, Badge } from './ui';
 import { Wrench, CheckCircle2, AlertCircle, DollarSign, PenTool, User, FileText } from 'lucide-react';
@@ -24,6 +25,8 @@ export function TechnicianJobCard({ appliance, complaint, diagnosis, partsDecisi
     }
   };
 
+  const [workOrderId] = useState(() => Math.floor(Math.random() * 10000).toString().padStart(4, '0'));
+
   return (
     <Card className="border-l-4 border-l-blue-600 bg-slate-50 relative overflow-hidden">
       <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
@@ -37,7 +40,7 @@ export function TechnicianJobCard({ appliance, complaint, diagnosis, partsDecisi
             <h2 className="text-2xl font-bold text-slate-900">{appliance} Repair</h2>
           </div>
           <Badge variant="default" className="text-sm px-3 py-1 bg-white border border-slate-200">
-            Work Order #FX-{Math.floor(Math.random() * 10000).toString().padStart(4, '0')}
+            Work Order #FX-{workOrderId}
           </Badge>
         </div>
 
