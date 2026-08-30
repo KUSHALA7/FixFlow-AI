@@ -136,27 +136,92 @@ export default function App() {
 
   if (viewMode === 'landing') {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="text-center mb-10">
-          <div className="bg-blue-600 p-4 rounded-2xl inline-block mb-6">
-            <Wrench className="w-12 h-12 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">FIXFLOW LANDING PAGE</h1>
-          <h2 className="text-2xl font-semibold text-slate-700 mb-2">FixFlow</h2>
-          <p className="text-slate-500 text-lg">AI Repair Companion</p>
-        </div>
+      <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-100 relative overflow-hidden">
+        {/* Subtle background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white to-slate-50/50 z-0" />
+        
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -translate-x-1/2 translate-y-1/2" />
 
-        <Card className="p-8 max-w-md w-full shadow-lg border-slate-200">
-          <h3 className="text-xl font-medium text-center text-slate-800 mb-6">"Who are you?"</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <Button onClick={() => setViewMode('customerLogin')} className="py-6 text-lg" variant="outline">
-              Customer
-            </Button>
-            <Button onClick={() => setViewMode('technicianLogin')} className="py-6 text-lg" variant="outline">
-              Technician
-            </Button>
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
+          
+          <div className="text-center mb-12 max-w-2xl mx-auto">
+            <div className="bg-blue-600 p-4 rounded-2xl inline-block mb-8 shadow-xl shadow-blue-600/20 transform transition-transform hover:scale-105">
+              <Wrench className="w-12 h-12 text-white" />
+            </div>
+            
+            <h1 className="text-5xl sm:text-6xl font-extrabold text-slate-900 tracking-tight mb-4">
+              FixFlow
+            </h1>
+            <p className="text-blue-600 font-semibold tracking-wide uppercase text-sm mb-8">
+              AI Repair Companion
+            </p>
+            
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 tracking-tight mb-6 leading-tight">
+              From broken to fixed — without the guesswork.
+            </h2>
+            <p className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-xl mx-auto">
+              AI-powered appliance diagnosis, trusted technicians, and seamless repair tracking — all in one place.
+            </p>
           </div>
-        </Card>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl w-full mx-auto mb-16">
+            {/* Customer Card */}
+            <Card className="p-8 sm:p-10 border-slate-200 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-between group rounded-3xl bg-white/80 backdrop-blur-sm">
+              <div>
+                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-100 transition-colors">
+                  <Activity className="w-7 h-7 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">I need a repair</h3>
+                <p className="text-slate-600 mb-8 leading-relaxed">
+                  Diagnose an issue, book a technician and track your repair.
+                </p>
+              </div>
+              <Button 
+                onClick={() => setViewMode('customerLogin')} 
+                className="w-full py-6 text-lg rounded-xl font-medium shadow-md group-hover:shadow-lg transition-all"
+              >
+                Continue as Customer <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Card>
+
+            {/* Technician Card */}
+            <Card className="p-8 sm:p-10 border-slate-200 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-between group rounded-3xl bg-white/80 backdrop-blur-sm">
+              <div>
+                <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-100 transition-colors">
+                  <Wrench className="w-7 h-7 text-indigo-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">I'm a technician</h3>
+                <p className="text-slate-600 mb-8 leading-relaxed">
+                  Manage repair requests, appointments and completed jobs.
+                </p>
+              </div>
+              <Button 
+                onClick={() => setViewMode('technicianLogin')} 
+                variant="outline"
+                className="w-full py-6 text-lg rounded-xl font-medium border-2 border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 transition-all group-hover:shadow-md"
+              >
+                Continue as Technician <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Card>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-sm font-medium text-slate-500 mb-8">
+            <span className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> Smart Diagnosis</span>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <span className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> Easy Booking</span>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <span className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> Repair Tracking</span>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <span className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> Customer Feedback</span>
+          </div>
+          
+        </div>
+        
+        <footer className="relative z-10 py-6 text-center text-sm text-slate-400">
+          <p>FixFlow • AI-powered appliance repair</p>
+        </footer>
       </div>
     );
   }
