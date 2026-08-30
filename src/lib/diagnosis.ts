@@ -15,6 +15,8 @@ export interface WorkflowState {
   isAnalyzing: boolean;
   diagnosis: DiagnosisResult | null;
   partsDecision: PartsDecision | null;
+  bookingDetails: any | null; // Added for new booking flow
+  repairStatus: string | null; // Added for new booking flow
 }
 
 export type PartsDecision = 'customer' | 'technician' | 'inspection';

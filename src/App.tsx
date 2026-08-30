@@ -3,7 +3,11 @@ import { analyzeComplaint, calculateReadinessScore } from './lib/diagnosis';
 import type { ApplianceType, WorkflowState } from './lib/diagnosis';
 import { Button, Card, Badge } from './components/ui';
 import { TechnicianJobCard } from './components/JobCard';
-import { Wrench, CheckCircle2, ChevronRight, Activity, RotateCcw, AlertTriangle, DollarSign, AlertCircle, FileText } from 'lucide-react';
+import { TechnicianBooking } from './components/booking/TechnicianBooking';
+import { BookingConfirmation } from './components/booking/BookingConfirmation';
+import { TechnicianDashboard } from './components/dashboards/TechnicianDashboard';
+import { CustomerRating } from './components/booking/CustomerRating';
+import { Wrench, CheckCircle2, ChevronRight, Activity, RotateCcw, AlertTriangle, DollarSign, AlertCircle, ArrowRight, User } from 'lucide-react';
 
 const APPLIANCES: ApplianceType[] = ['Washing Machine', 'Refrigerator', 'Air Conditioner', 'Television', 'Other'];
 const EXAMPLES = [
@@ -13,12 +17,15 @@ const EXAMPLES = [
 ];
 
 export default function App() {
+  const [viewMode, setViewMode] = useState<'customer' | 'technician' | 'rating'>('customer');
   const [state, setState] = useState<WorkflowState>({
     appliance: null,
     complaint: '',
     isAnalyzing: false,
     diagnosis: null,
-    partsDecision: null
+    partsDecision: null,
+    bookingDetails: null,
+    repairStatus: null
   });
 
   const readinessScore = calculateReadinessScore(state.appliance, state.complaint);
@@ -35,24 +42,63 @@ export default function App() {
     }, 1500);
   };
 
+  const handleBookTechnician = (details: any) => {
+    // Generate mock booking ID
+    const bookingId = `BK-${Math.floor(Math.random() * 90000) + 10000}`;
+    
+    setState(s => ({
+      ...s,
+      bookingDetails: {
+        bookingId,
+        customerName: 'Guest Customer', // In real app, from auth
+        serviceAddress: details.address,
+        preferredDate: details.date,
+        preferredTime: details.time,
+        technicianId: details.technician.id,
+        status: 'booked'
+      }
+    }));
+  };
+
   const reset = () => {
     setState({
       appliance: null,
       complaint: '',
       isAnalyzing: false,
       diagnosis: null,
-      partsDecision: null
+      partsDecision: null,
+      bookingDetails: null,
+      repairStatus: null
     });
   };
 
   const getStage = () => {
-    if (state.partsDecision) return 4;
-    if (state.diagnosis) return 3;
-    if (state.isAnalyzing) return 2;
-    return 1;
+    if (state.bookingDetails) return 6; // Confirmation
+    if (state.repairStatus === 'booking') return 5; // Booking Form
+    if (state.partsDecision) return 4; // Job Card
+    if (state.diagnosis) return 3; // Diagnosis
+    if (state.isAnalyzing) return 2; // Analyzing
+    return 1; // Input
   };
 
   const currentStage = getStage();
+
+  if (viewMode === 'technician') {
+    return <TechnicianDashboard onLogout={() => setViewMode('customer')} />;
+  }
+
+  if (viewMode === 'rating') {
+    return (
+      <div className="min-h-screen bg-slate-50 py-12 px-4">
+        <CustomerRating 
+          technicianName="Michael Rodriguez" 
+          appliance="Washing Machine"
+          onSubmit={() => setViewMode('customer')}
+          onSkip={() => setViewMode('customer')}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100">
@@ -69,11 +115,19 @@ export default function App() {
               <p className="text-xs text-slate-500 mt-0.5">AI Repair Companion</p>
             </div>
           </div>
-          {currentStage > 1 && (
-            <Button variant="outline" onClick={reset} className="text-sm py-1.5">
-              <RotateCcw className="w-4 h-4 mr-2" /> Start New
-            </Button>
-          )}
+          <div className="flex items-center space-x-3">
+             <Button variant="outline" onClick={() => setViewMode('rating')} className="hidden sm:flex text-xs py-1 px-2 h-auto text-slate-500 border-none hover:bg-slate-100">
+               Simulate Rating
+             </Button>
+             <Button variant="outline" onClick={() => setViewMode('technician')} className="text-sm py-1.5 hidden sm:flex border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700">
+               <User className="w-4 h-4 mr-2" /> Tech Portal
+             </Button>
+            {currentStage > 1 && (
+              <Button variant="outline" onClick={reset} className="text-sm py-1.5">
+                <RotateCcw className="w-4 h-4 mr-2" /> Start New
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -92,26 +146,31 @@ export default function App() {
         )}
 
         {/* Workflow Progress */}
-        {currentStage > 1 && (
-          <div className="flex items-center justify-center space-x-2 md:space-x-4 text-sm font-medium">
-            <span className={`flex items-center ${currentStage >= 1 ? 'text-blue-600' : 'text-slate-400'}`}>
+        {currentStage > 1 && currentStage < 6 && (
+          <div className="flex items-center justify-center space-x-2 md:space-x-4 text-sm font-medium overflow-x-auto pb-2">
+            <span className={`flex items-center whitespace-nowrap ${currentStage >= 1 ? 'text-blue-600' : 'text-slate-400'}`}>
                <span className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-current mr-2 text-xs">1</span>
                Input
             </span>
-            <ChevronRight className="w-4 h-4 text-slate-300" />
-            <span className={`flex items-center ${currentStage >= 2 ? 'text-blue-600' : 'text-slate-400'}`}>
+            <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+            <span className={`flex items-center whitespace-nowrap ${currentStage >= 2 ? 'text-blue-600' : 'text-slate-400'}`}>
                <span className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-current mr-2 text-xs">2</span>
                Analysis
             </span>
-            <ChevronRight className="w-4 h-4 text-slate-300" />
-            <span className={`flex items-center ${currentStage >= 3 ? 'text-blue-600' : 'text-slate-400'}`}>
+            <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+            <span className={`flex items-center whitespace-nowrap ${currentStage >= 3 ? 'text-blue-600' : 'text-slate-400'}`}>
                <span className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-current mr-2 text-xs">3</span>
                Decision
             </span>
-            <ChevronRight className="w-4 h-4 text-slate-300" />
-            <span className={`flex items-center ${currentStage >= 4 ? 'text-blue-600' : 'text-slate-400'}`}>
+            <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+            <span className={`flex items-center whitespace-nowrap ${currentStage >= 4 ? 'text-blue-600' : 'text-slate-400'}`}>
                <span className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-current mr-2 text-xs">4</span>
                Job Card
+            </span>
+            <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+            <span className={`flex items-center whitespace-nowrap ${currentStage >= 5 ? 'text-blue-600' : 'text-slate-400'}`}>
+               <span className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-current mr-2 text-xs">5</span>
+               Booking
             </span>
           </div>
         )}
@@ -308,11 +367,8 @@ export default function App() {
             <div className="flex items-center justify-between mb-4">
                <div>
                  <h2 className="text-2xl font-bold text-slate-900">Ready for Dispatch</h2>
-                 <p className="text-slate-600">Hand this job card to your technician.</p>
+                 <p className="text-slate-600">Review the job card before booking a technician.</p>
                </div>
-               <Button variant="outline" className="hidden md:flex">
-                 <FileText className="w-4 h-4 mr-2" /> Print Card
-               </Button>
             </div>
             
             <TechnicianJobCard 
@@ -322,11 +378,43 @@ export default function App() {
               partsDecision={state.partsDecision}
             />
             
-            <div className="flex justify-center mt-8 pb-8">
-               <Button onClick={reset} className="px-8 py-3 text-lg">
-                 Start Another Diagnosis
+            <div className="flex justify-center mt-8 pb-8 space-x-4">
+               <Button variant="outline" onClick={reset} className="px-6 py-3">
+                 Cancel
+               </Button>
+               <Button onClick={() => setState(s => ({ ...s, repairStatus: 'booking' }))} className="px-8 py-3 text-lg">
+                 Book Technician <ArrowRight className="w-5 h-5 ml-2" />
                </Button>
             </div>
+          </div>
+        )}
+
+        {/* Stage 5: Booking Form */}
+        {currentStage === 5 && state.appliance && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <TechnicianBooking 
+              appliance={state.appliance} 
+              onBook={handleBookTechnician} 
+            />
+            <div className="mt-6 text-center">
+              <Button variant="outline" onClick={() => setState(s => ({ ...s, repairStatus: null }))} className="border-none hover:bg-slate-100">
+                Back to Job Card
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Stage 6: Confirmation */}
+        {currentStage === 6 && state.bookingDetails && state.diagnosis && state.partsDecision && state.appliance && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <BookingConfirmation 
+              booking={state.bookingDetails}
+              diagnosis={state.diagnosis}
+              partsDecision={state.partsDecision}
+              appliance={state.appliance}
+              complaint={state.complaint}
+              onNewDiagnosis={reset}
+            />
           </div>
         )}
 
