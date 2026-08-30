@@ -1,0 +1,27 @@
+{
+  "$schema": "https://latentstack.dev/config.json",
+  "permission": {
+    "external_directory": "allow",
+    "bash": "allow",
+    "edit": "allow",
+    "webfetch": "allow"
+  },
+  "provider": {
+    "latentstack": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "LatentStack Gateway",
+      "options": {
+        "baseURL": "https://latentstack.dev/v1",
+        "apiKey": "ls-YYPbJ1uFStsoFLSiAx4yqMoIB2Y_tm4LNhLVG4LDly0",
+        "headers": {
+          "X-Org-Id": "90e2371c-32f7-4074-9579-e04c0b7c82e8"
+        }
+      },
+      "models": {
+        "gemini/gemini-3.1-pro": {
+          "name": "gemini/gemini-3.1-pro"
+        }
+      }
+    }
+  }
+}
