@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { analyzeComplaint, calculateReadinessScore } from './lib/diagnosis';
 import type { ApplianceType, WorkflowState } from './lib/diagnosis';
-import { Button, Card, Badge } from './components/ui';
+import { Button, Card, Badge, Input } from './components/ui';
 import { TechnicianJobCard } from './components/JobCard';
 import { TechnicianBooking } from './components/booking/TechnicianBooking';
 import { BookingConfirmation } from './components/booking/BookingConfirmation';
 import { TechnicianDashboard } from './components/dashboards/TechnicianDashboard';
+import { CustomerDashboard } from './components/dashboards/CustomerDashboard';
 import { CustomerRating } from './components/booking/CustomerRating';
-import { Wrench, CheckCircle2, ChevronRight, Activity, RotateCcw, AlertTriangle, DollarSign, AlertCircle, ArrowRight, User } from 'lucide-react';
+import { Wrench, CheckCircle2, ChevronRight, Activity, RotateCcw, AlertTriangle, DollarSign, AlertCircle, ArrowRight } from 'lucide-react';
 
 const APPLIANCES: ApplianceType[] = ['Washing Machine', 'Refrigerator', 'Air Conditioner', 'Television', 'Other'];
 const EXAMPLES = [
@@ -17,7 +18,7 @@ const EXAMPLES = [
 ];
 
 export default function App() {
-  const [viewMode, setViewMode] = useState<'customer' | 'technician' | 'rating'>('customer');
+  const [viewMode, setViewMode] = useState<'landing' | 'customerLogin' | 'technicianLogin' | 'customer' | 'technician' | 'rating' | 'booking'>('landing');
   const [state, setState] = useState<WorkflowState>({
     appliance: null,
     complaint: '',
@@ -83,8 +84,93 @@ export default function App() {
 
   const currentStage = getStage();
 
+  if (viewMode === 'landing') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="text-center mb-10">
+          <div className="bg-blue-600 p-4 rounded-2xl inline-block mb-6">
+            <Wrench className="w-12 h-12 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">FIXFLOW LANDING PAGE</h1>
+          <h2 className="text-2xl font-semibold text-slate-700 mb-2">FixFlow</h2>
+          <p className="text-slate-500 text-lg">AI Repair Companion</p>
+        </div>
+
+        <Card className="p-8 max-w-md w-full shadow-lg border-slate-200">
+          <h3 className="text-xl font-medium text-center text-slate-800 mb-6">"Who are you?"</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <Button onClick={() => setViewMode('customerLogin')} className="py-6 text-lg" variant="outline">
+              Customer
+            </Button>
+            <Button onClick={() => setViewMode('technicianLogin')} className="py-6 text-lg" variant="outline">
+              Technician
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (viewMode === 'customerLogin') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <Card className="p-8 max-w-md w-full shadow-lg border-slate-200">
+          <h2 className="text-2xl font-bold text-center mb-6">Customer Login</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Name/Email</label>
+              <Input type="text" placeholder="Enter name or email" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+              <Input type="password" placeholder="Enter password" />
+            </div>
+            <Button onClick={() => setViewMode('customer')} className="w-full">Login</Button>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-300" /></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-500">Or</span></div>
+            </div>
+            <Button onClick={() => setViewMode('customer')} variant="secondary" className="w-full">Demo Customer Login</Button>
+            <Button onClick={() => setViewMode('landing')} variant="ghost" className="w-full mt-2">Back</Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (viewMode === 'technicianLogin') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <Card className="p-8 max-w-md w-full shadow-lg border-slate-200">
+          <h2 className="text-2xl font-bold text-center mb-6">Technician Login</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Phone/Email</label>
+              <Input type="text" placeholder="Enter phone or email" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+              <Input type="password" placeholder="Enter password" />
+            </div>
+            <Button onClick={() => setViewMode('technician')} className="w-full">Login</Button>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-300" /></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-500">Or</span></div>
+            </div>
+            <Button onClick={() => setViewMode('technician')} variant="secondary" className="w-full">Demo Technician Login</Button>
+            <Button onClick={() => setViewMode('landing')} variant="ghost" className="w-full mt-2">Back</Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   if (viewMode === 'technician') {
-    return <TechnicianDashboard onLogout={() => setViewMode('customer')} />;
+    return <TechnicianDashboard onLogout={() => setViewMode('landing')} />;
+  }
+
+  if (viewMode === 'customer') {
+    return <CustomerDashboard onLogout={() => setViewMode('landing')} onBookRepair={() => setViewMode('booking')} />;
   }
 
   if (viewMode === 'rating') {
@@ -116,12 +202,12 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center space-x-3">
-             <Button variant="outline" onClick={() => setViewMode('rating')} className="hidden sm:flex text-xs py-1 px-2 h-auto text-slate-500 border-none hover:bg-slate-100">
-               Simulate Rating
-             </Button>
-             <Button variant="outline" onClick={() => setViewMode('technician')} className="text-sm py-1.5 hidden sm:flex border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700">
-               <User className="w-4 h-4 mr-2" /> Tech Portal
-             </Button>
+              <Button variant="outline" onClick={() => setViewMode('rating')} className="hidden sm:flex text-xs py-1 px-2 h-auto text-slate-500 border-none hover:bg-slate-100">
+                Simulate Rating
+              </Button>
+              <Button variant="outline" onClick={() => setViewMode('customer')} className="text-sm py-1.5 hidden sm:flex border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700">
+                Back to Dashboard
+              </Button>
             {currentStage > 1 && (
               <Button variant="outline" onClick={reset} className="text-sm py-1.5">
                 <RotateCcw className="w-4 h-4 mr-2" /> Start New

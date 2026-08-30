@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { TechnicianBooking } from '../components/booking/TechnicianBooking';
 
 describe('TechnicianBooking', () => {
@@ -33,7 +33,6 @@ describe('TechnicianBooking', () => {
 
     // We can't easily test date input in jsdom standard without more setup, 
     // but we can assume setting value works
-    const dateInputs = screen.getAllByRole('textbox').filter(el => el.getAttribute('type') !== 'text');
     // Date input type="date" doesn't have role textbox, need a different query
     const dateInput = document.querySelector('input[type="date"]');
     if (dateInput) {
